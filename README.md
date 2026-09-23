@@ -213,7 +213,15 @@ int main() {
 }
 ~~~
 
+<br/>
 
+  - CUDA문법
+    - __global__ : GPU에서 실행, CPU가 호출.
+    - __device__ : GPU에서 실행, GPU가 호출.
+    - __shared__ : 블록 안에서 공유하는 빠른 메모리.
+    - <<<grid, block>>> : 몇 명이 실행할지.
+    - threadIdx / blockIdx / blockDim : 내가 몇 번째 스레드인가.
+    - __syncthreads() : 블록 안 스레드 집합 대기.
 
 
 
