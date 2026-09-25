@@ -2,7 +2,7 @@
 
   - [프로젝트](#프로젝트)
   - [CUDA기초](#CUDA기초)
-  - [Debug vs Release](#Debug-vs-Release)
+  - [Debug vs Release,Pcle,대역폭](#Debug-vs-ReleasePcle대역폭)
 
 
 <br/>
@@ -371,7 +371,7 @@ SM 하나에 블록이 24개 들어간다. 2개가 아니다.
 
 ***
 
-# Debug vs Release
+# Debug vs Release,Pcle,대역폭
 
   - Debug와 Release를 했을때 순위가 완전히 뒤집힌다
 
@@ -452,7 +452,7 @@ x8   : 레인 8개
 이론 최대 : 약 16 GB/s
 ```
 
-###### [Debug vs Release](#Debug-vs-Release)
+###### [Debug vs Release,Pcle,대역폭](#Debug-vs-ReleasePcle대역폭)
 ###### [Top](#top)
 
 
