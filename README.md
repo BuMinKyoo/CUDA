@@ -2,6 +2,7 @@
 
   - [프로젝트](#프로젝트)
   - [CUDA기초](#CUDA기초)
+  - [Debug vs Release](#Debug-vs-Release)
 
 
 <br/>
@@ -12,6 +13,9 @@
 #프로젝트
   - [CudaPrectice](https://github.com/BuMinKyoo/CudaPrectice)
 
+
+###### [프로젝트](#프로젝트)
+###### [Top](#top)
 
 <br/>
 <br/>
@@ -359,7 +363,97 @@ SM 하나에 블록이 24개 들어간다. 2개가 아니다.
     - blockDim.x : 블록 하나에 스레드가 몇 개인가
     - threadIdx.x : 블록 안에서 내가 몇 번째인가
 
+###### [CUDA기초](#CUDA기초)
+###### [Top](#top)
 
+<br/>
+<br/>
+
+***
+
+# Debug vs Release
+
+  - Debug와 Release를 했을때 순위가 완전히 뒤집힌다
+
+<br/>
+
+```text
+항목                  Debug        Release      차이
+─────────────────────────────────────────────────────
+CPU loop             52.0 ms       3.6 ms      15배
+block 8               4.99 ms      2.26 ms      2.2배
+block 16              2.50 ms      1.14 ms      2.2배
+block 32              1.15 ms      0.61 ms      1.9배
+block 128             0.54 ms      0.52 ms      거의 같음
+block 256             0.57 ms      0.52 ms      거의 같음
+block 1024            0.68 ms      0.50 ms      1.4배 (역전)
+[B] grid 1           36.0 ms      12.5 ms       2.7배
+H2D 복사              7.0 ms       6.6 ms      거의 같음
+D2H 복사              3.3 ms       3.7 ms      거의 같음
+```
+<br/>
+
+  - Debug 빌드에서는 두 가지 최적화가 동시에 꺼진다.
+
+```text
+호스트 코드 (cl.exe)  : /Od  → CPU 루프가 최적화 안 됨      → CPU loop 15배 느림
+디바이스 코드 (nvcc)  : -G   → 커널 명령어가 최적화 안 됨   → 커널 최대 2.7배 느림
+```
+<br/>
+
+  - 결론
+
+```text
+- Release : 커널이 순수 메모리 병목 → 점유율 67%로도 대역폭이 포화되므로
+            블록 수가 적은(9,766 vs 39,063) 1024 가 스케줄링 비용에서 이긴다
+-> 대역폭은 총 2가지가 있는대
+[PCIe]  CPU RAM ↔ GPU VRAM       약  12 GB/s   ← cudaMemcpy 가 쓰는 길
+[VRAM]  GPU 코어 ↔ GPU VRAM      약 256 GB/s   ← 커널이 a[i] 읽을 때 쓰는 길
+여기서 말한 대역폭은 2번째를 의미한다, 즉 점유율만 100%로 하는게 좋은것이 아니다
+
+- Debug   : -G 로 명령어가 늘어 연산 비중이 커짐 → 대기를 가릴 warp 가 더 필요 →
+            점유율 100%인 256 이 이긴다
+
+ㅡㅡㅡㅡㅡㅡㅡ
+
+10,000,000의 N을 계산한다고 하면
+GPU안에서는 a+b = c 계산을 하기 때문에 각각 float으로써 4바이트가 된다, 즉 3개를 건들기 때문에
+1회 계산에 12바이트를 건들게 되고
+이건, 10,000,000 x 12 = 120,000,000바이트를 건드는 것이 된다. 이걸 전부 계산한 것이, block 1024 기준으로 했을때 0.000498초~0.0005초 사이 임으로
+
+바이트 ÷ 시간 = 대역폭    120,000,000 바이트 ÷ 0.000498초 = 241,000,000,000 바이트/초
+
+가 된다
+
+
+```
+
+<br/>
+
+  - 위에서 계산한 초당 몇 바이트를 옮길수 있는지 메모리 대역폭을 아래에서 확인할 수 있다
+    - 1번 사진 : VRAM 대역폭(GPU 코어 ↔ GPU 메모리)
+    - 2번 사진 : PCIe 대역폭(CPU ↔ GPU)
+
+<br/>
+
+<img width="1379" height="773" alt="image" src="https://github.com/user-attachments/assets/746290a2-1b0f-4534-89d4-4491010c3df1" />
+
+<br/>
+
+  - Gen4 x8
+<img width="918" height="774" alt="image" src="https://github.com/user-attachments/assets/f75da92b-03fe-4a95-a425-64820fcef9e6" />
+
+<br/>
+
+```text
+Gen4 : 레인 하나당 약 2 GB/s
+x8   : 레인 8개
+────────────────────────
+이론 최대 : 약 16 GB/s
+```
+
+###### [Debug vs Release](#Debug-vs-Release)
+###### [Top](#top)
 
 
 
