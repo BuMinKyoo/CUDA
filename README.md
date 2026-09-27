@@ -1,8 +1,9 @@
 ###### Top
 
   - [프로젝트](#프로젝트)
-  - [CUDA기초](#CUDA기초)
-  - [Debug vs Release,Pcle,대역폭](#Debug-vs-ReleasePcle대역폭)
+  - [CUDA기초](#cuda기초)
+  - [Debug vs Release,Pcle,대역폭](#debug-vs-releasepcle대역폭)
+  - [Nsight](#nsight)
 
 
 <br/>
@@ -462,11 +463,41 @@ x8   : 레인 8개
 ###### [Top](#top)
 
 
+<br/>
+<br/>
 
+***
 
+# Nsight
+  - NVIDIA에서 공식 제공하는 GPU 프로파일링 및 디버깅 도구 모음
 
+<br/>
 
+  - 비쥬얼스튜디오 에서 확장 추가
 
+<br/>
+
+<img width="828" height="490" alt="image" src="https://github.com/user-attachments/assets/eba3e2f2-1218-4f45-8858-cd101ff5f4d9" />
+
+<br/>
+
+  - Nsight Systems(전체 흐름 & 병목 탐색용 - nsys) 설치
+    - 역할: 거시적(Macro) 관점에서 CPU와 GPU 간의 상호작용을 타임라인으로 보여줌
+    - CPU 연산, cudaMemcpy, 커널 실행이 시간에 따라 어떻게 맞물려 있는지
+    - GPU가 작업을 기다리느라 멈춰 있는 구간(Idle Time)이 어디인지 등
+  - Nsight Compute (단일 커널 정밀 분석용 - ncu) 설치
+    - 역할: 미시적(Micro) 관점에서 특정 CUDA 커널 내부의 실행 효율을 정밀하게 분석
+    - 하드웨어 점유율(SM Occupancy), 연산 처리량(Compute Throughput), 메모리 대역폭 사용량
+    - 레지스터 스필(Register Spill)이나 공유 메모리(Shared Memory) 뱅크 충돌 여부
+    - 해당 커널이 메모리 바운드(Memory-bound)인지, 연산 바운드(Compute-bound)인지 진단
+
+<br/>
+
+  - Nsight Visual Studio Edition (디버거) 설치
+    - 
+
+###### [Nsight](#nsight)
+###### [Top](#top)
 
 
 
