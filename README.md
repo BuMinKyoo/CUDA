@@ -4,6 +4,7 @@
   - [CUDA기초](#cuda기초)
   - [Debug vs Release,Pcle,대역폭](#debug-vs-releasepcle대역폭)
   - [Nsight](#nsight)
+  - [SISD,SIMD,SIMT](#sisdsimdsimt)
 
 
 <br/>
@@ -494,10 +495,57 @@ x8   : 레인 8개
 <br/>
 
   - Nsight Visual Studio Edition (디버거) 설치
-    - 
 
 ###### [Nsight](#nsight)
 ###### [Top](#top)
+
+
+<br/>
+<br/>
+
+***
+
+# SISD,SIMD,SIMT
+  - SISD (Single Instruction, Single Data)
+    - 명령어 하나가 데이터 하나를 처리
+    - 전통적인 CPU 코어 하나의 기본 동작
+
+<br/>
+
+  - SIMD (Single Instruction, Multiple Data)
+    - 명령어 하나가 데이터 여러 개를 한꺼번에 처리
+    - CPU의 SSE, AVX, NEON이 여기에 해당
+    - 예를들어 -> 레지스터 자체가 넓어서(AVX는 256비트) float 8개를 한 레지스터에 담고, 명령 하나로 8개를 동시에처리
+    - if처럼 원소마다 다른 분기가 필요하면 마스크를 직접 만들어 처리해야 한다
+
+<br/>
+
+  - SIMT (Single Instruction, Multiple Threads)
+    - GPU동작
+    - 하드웨어는 SIMD처럼 동작하지만, 프로그래머는 스레드 하나의 코드만 쓴다
+    - SIMD와 다른 점
+      - 각 스레드가 자기 레지스터, 자기 인덱스, 자기 실행 흐름을 가진다, 코드는 스레드 하나 기준의 평범한 스칼라 코드이고, 32개씩 묶는 일은 하드웨어가 알아서 한다
+      - 스레드마다 임의의 주소를 읽고 쓸 수 있다
+      - 분기를 그냥 if로 쓸 수 있다. 하드웨어가 마스크를 자동으로 처리해 준다
+
+```text
+if (threadIdx.x % 2 == 0)  A();
+else                        B();
+
+이렇게 분기를 타게 되면, 
+짝수 스레드는 A, 홀수 스레드는 B로 갈라지면, 하드웨어는 A를 실행하는 동안 홀수 스레드를 꺼두고, 그다음 B를 실행하는 동안 짝수 스레드를 꺼둔다
+두 경로를 순서대로 모두 실행하게 되어 이 구간은 효율이 절반으로 떨어집니다. 결국 속을 들여다보면 SIMD라서 생기는 현상
+```
+
+
+
+###### [SISD,SIMD,SIMT](#sisdsimdsimt)
+###### [Top](#top)
+
+
+
+
+
 
 
 
