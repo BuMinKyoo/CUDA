@@ -1,12 +1,12 @@
 ###### Top
 
   - [프로젝트](#프로젝트)
-  - [CUDA기초](#cuda기초)
+  - [CUDA기초](#cuda기초)_S1_ExecModel -> 01_VectorAdd
   - [Debug vs Release,Pcle,대역폭](#debug-vs-releasepcle대역폭)
   - [Nsight](#nsight)
   - [SISD,SIMD,SIMT](#sisdsimdsimt)
-  - [2D,3D커널](#2d3d커널)
-  - [비동기,에러](#비동기에러)
+  - [2D,3D커널](#2d3d커널)_S1_ExecModel -> 02_BgrToGray
+  - [비동기,에러](#비동기에러)_S1_ExecModel -> 03_AsyncAndErrors
 
 
 2D 커널
@@ -29,6 +29,9 @@
 ***
 
 # CUDA기초
+  - S1_ExecModel -> 01_VectorAdd
+
+<br/>
 
   - __global__ :	실행되는곳 -> GPU / 호출하는 곳 -> CPU / (또는 GPU, 동적 병렬 처리)	반드시 void, <<<>>>로 호출, 비동기
   - __device__ : 실행되는곳 -> GPU	/ 호출하는 곳 -> GPU	/ GPU 안에서만 쓰는 보조 함수
@@ -587,6 +590,7 @@ warp 0은 발산합니다
 
 
 # 2D,3D커널
+  - S1_ExecModel -> 02_BgrToGray
   - 01_VectorAdd 프로젝트는 1D이고, 02_BgrToGray는 2D,3D까지 다루고 있음
 
 <br/>
@@ -616,6 +620,7 @@ if (x >= w || y >= h) return;
 ***
 
 # 비동기,에러
+  - _S1_ExecModel -> 03_AsyncAndErrors
 
 ```text
 HeavyWork<<<grid, block>>>(d, n, iters);
@@ -660,6 +665,11 @@ Peek #2 : cudaErrorInvalidConfiguration      ← 여전히 남아 있음
 Get  #1 : cudaErrorInvalidConfiguration  (invalid configuration argument)
 Get  #2 : cudaSuccess                        ← 지워짐!
 ~~~
+
+<br/>
+
+  - 여기서 중요한것은 커널이 조용히 실패한 후에, 다른 커널들은 진행이 잘 된긴 하지만, CUDA_CHECK_LAUNCH()를 하는 순간 이전에 있던 에러가 튀어 나오면서 프로그램이 exit됨
+  - 따라서 cuda함수를 사용한 후에는 항상 CUDA_CHECK_LAUNCH를 사용해서 어떤 함수에서 실패했는지 정확히 체크해야함
 
 
 ###### [비동기,에러](#비동기에러)
