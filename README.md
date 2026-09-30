@@ -5,7 +5,10 @@
   - [Debug vs Release,Pcle,대역폭](#debug-vs-releasepcle대역폭)
   - [Nsight](#nsight)
   - [SISD,SIMD,SIMT](#sisdsimdsimt)
+  - [2D,3D커널](#2d3d커널)
 
+
+2D 커널
 
 <br/>
 <br/>
@@ -576,7 +579,37 @@ warp 0은 발산합니다
 ###### [Top](#top)
 
 
+<br/>
+<br/>
 
+***
+
+
+# 2D,3D커널
+  - 01_VectorAdd 프로젝트는 1D이고, 02_BgrToGray는 2D,3D까지 다루고 있음
+
+<br/>
+
+~~~c
+dim3 block(16, 16);
+dim3 grid(DivUp(w, 16), DivUp(h, 16));
+BgrToGray<<<grid, block>>>(dSrc, dDst, w, h);
+
+/*
+dim3는 그냥 리스트 3개짜리인것
+2d,3d는 위와 같은 코드로 집어 넣는것이고, 위의 코드는 3d이지만 마지막 z축이 1이라서 감춰짐
+*/
+
+// 커널에서 사용할때 아래와 같이 사용하면됨
+int x = blockIdx.x * blockDim.x + threadIdx.x;
+int y = blockIdx.y * blockDim.y + threadIdx.y;
+if (x >= w || y >= h) return;
+~~~
+
+
+
+###### [2D,3D커널](#2d3d커널)
+###### [Top](#top)
 
 
 
