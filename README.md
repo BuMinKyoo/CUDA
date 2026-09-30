@@ -6,6 +6,7 @@
   - [Nsight](#nsight)
   - [SISD,SIMD,SIMT](#sisdsimdsimt)
   - [2D,3D커널](#2d3d커널)
+  - [비동기,에러](#비동기에러)
 
 
 2D 커널
@@ -606,13 +607,63 @@ int y = blockIdx.y * blockDim.y + threadIdx.y;
 if (x >= w || y >= h) return;
 ~~~
 
-
-
 ###### [2D,3D커널](#2d3d커널)
 ###### [Top](#top)
 
+<br/>
+<br/>
+
+***
+
+# 비동기,에러
+
+```text
+HeavyWork<<<grid, block>>>(d, n, iters);
+
+// 이와 같이 cpu가 gpu에게 작업을 전달하는건 작업을 마치 주문만 하고 돌아오는것
+// cpu는 gpu에게 작업 주문만 한다
+```
+
+<br/>
+
+  - cudaDeviceSynchronize
+    - gpu작업이 다 끝날때까지 cpu가 멈춰서 있다
+
+<br/>
+
+```text
+// CPU가 먼저 끝나는 경우
+CPU  [런치][CPU 50ms][─ 30ms 기다림 ─]
+GPU  [───────── GPU 80ms ─────────]
+                                   ↑ afterSync = 80ms
+// GPU가 먼저 끝나는 경우
+CPU  [런치][──── CPU 120ms ────][Sync 즉시 통과]
+GPU  [─── GPU 80ms ───]
+                                ↑ afterSync = 120ms
+```
+
+<br/>
+
+  - 엔비디어 커널런치는 조용히 실패함 -> 반환 값을 받을 자리가 없기 때문
+    - 에러가 발생하면, 마지막에러 슬롯에 적어 놓는다, 우린 그걸 빼서 확인하면 됨
+
+<br/>
+
+~~~c
+cudaError_t e1 = cudaPeekAtLastError();   // 보기만
+cudaError_t e2 = cudaPeekAtLastError();   // 또 보기
+cudaError_t e3 = cudaGetLastError();      // 꺼내기 (지워짐)
+cudaError_t e4 = cudaGetLastError();      // 다시 꺼내기
+
+Peek #1 : cudaErrorInvalidConfiguration
+Peek #2 : cudaErrorInvalidConfiguration      ← 여전히 남아 있음
+Get  #1 : cudaErrorInvalidConfiguration  (invalid configuration argument)
+Get  #2 : cudaSuccess                        ← 지워짐!
+~~~
 
 
+###### [비동기,에러](#비동기에러)
+###### [Top](#top)
 
 
 
