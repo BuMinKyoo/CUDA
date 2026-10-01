@@ -664,6 +664,11 @@ GPU  [─── GPU 80ms ───]
 
 <br/>
 
+  - cudaEventRecord : cpu가 gpu에게 너 이거 보면 시간 찍어 라고 큐에 집어 넣고 나온다, gpu는 자기 할일 하다가 이명령어를 큐에서 빼면 시간을찍음
+  - cudaEventSynchronize(end_) : end 표식이 찍힐 때까지 대기
+
+<br/>
+
 ~~~c
 cudaError_t e1 = cudaPeekAtLastError();   // 보기만
 cudaError_t e2 = cudaPeekAtLastError();   // 또 보기
