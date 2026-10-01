@@ -8,6 +8,9 @@
   - [2D,3D커널](#2d3d커널)_S1_ExecModel -> 02_BgrToGray
   - [비동기,에러](#비동기에러)_S1_ExecModel -> 03_AsyncAndErrors
   - [메모리접근속도,공유메모리](#메모리접근속도공유메모리)_S2_Memory -> 04_Transpose
+  - [Reduction](#reduction)_S3_Reduction -> 05_Reduction
+
+
 
 
 2D 커널
@@ -820,8 +823,40 @@ __global__ void TransposeShared(const float* in, float* out, int n) {
 ###### [메모리접근속도,공유메모리](#메모리접근속도공유메모리)
 ###### [Top](#top)
 
+<br/>
+<br/>
+
+***
+
+# Reduction
+  - S3_Reduction -> 05_Reduction
+
+<br/>
+
+  - GPU안에서 덧셈을 할때 무조건 더하면 계산 오류가 발생한다
+
+~~~c
+output[0] += input[i]; -> 이런식으로 막무가네로 더하면 계산이 잘 맞지 않는다
+
+output[0] = 1 에서 스레드 둘이 각각 1을 더해 3이 되어야 하는데
+
+t0: 1 읽음
+t1: 1 읽음          ← t0 이 쓰기 전에 읽어버렸다
+t0: 2 저장
+t1: 2 저장          ← t0 이 쓴 2를 모른다
+                    결과 2. 하나가 사라졌다
+~~~
+
+<br/>
+
+  - atomicAdd 를 사용하면 정확하게 원자적으로 계산되지만, 지나치게 느려지게 된다
+    - 여러개의 쓰레드들이 자기 차례를 기다려야 하기 때문
 
 
+
+
+###### [Reduction](#reduction)
+###### [Top](#top)
 
 
 
