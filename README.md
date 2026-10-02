@@ -851,7 +851,61 @@ t1: 2 저장          ← t0 이 쓴 2를 모른다
 
   - atomicAdd 를 사용하면 정확하게 원자적으로 계산되지만, 지나치게 느려지게 된다
     - 여러개의 쓰레드들이 자기 차례를 기다려야 하기 때문
+    - 그래서 아래 그림과 같은 방식으로 각 스레드를 이용해서 더해간다
+    - 1블럭안에 있는 스레드들을 활용하여 다 더해야 하는 list에 접근해서, 뒤쪽에 먼저 접근해 앞쪽으로 합쳐주는 방식으로 진행한다
+   
+```text
+입력:      [ 1   2   3   4   5   6   7   8 ]
+             t0  t1  t2  t3  └───┬───────┘
+                               더해질 쪽
 
+stride=4:  t0: in[0] += in[4]  →  1+5 = 6
+           t1: in[1] += in[5]  →  2+6 = 8
+           t2: in[2] += in[6]  →  3+7 = 10
+           t3: in[3] += in[7]  →  4+8 = 12
+           [ 6   8  10  12 ]                   8개 → 4개
+
+stride=2:  t0: in[0] += in[2]  →  6+10 = 16
+           t1: in[1] += in[3]  →  8+12 = 20
+           [16  20 ]                           4개 → 2개
+
+stride=1:  t0: in[0] += in[1]  →  16+20 = 36
+           [36]                                2개 → 1개
+
+1+2+...+8 = 36  ✅
+```
+
+<br/>
+
+  - 작은 수로 먼저 계산을 하면 이해가 편하다, 1블럭의 제한 스레드 수가 10개라고 했을때, 100칸을 더한다고 하면, 블럭을 5개를 만들고 각 블럭이 계산을 20개씩 맡게 하고 그럼 각스레드가 2개씩 맡는것(3개씩 맡게할수도, 4개씩 맡개할수도 있다, 그럼 블럭수가 달라지겠지)
+  - 각 구간안에 20개씩 맡게 하면 5개의 구간이 생긴다, 그 구간안에서 각스레드 10개는 덧셈을 진행할때 list[20] 의 뒷부분을 먼저 접근해서 앞쪽으로 더해준다
+
+<br/>
+
+~~~c
+__global__ void segmentedSumReductionKernel(float *input, float *output) {
+    extern __shared__ float inputShared[];
+
+    unsigned int segment = 2 * blockDim.x * blockIdx.x;
+    unsigned int i = segment + threadIdx.x;
+    unsigned int t = threadIdx.x;
+
+    // 위의 두 개를 잘 합치면 됩니다.
+    inputShared[t] = input[i] + input[i + blockDim.x];
+  -> 공유메모리는 블럭별로 다르기 때문에 서로 겹치지 않는다
+
+    for (unsigned int stride = blockDim.x / 2; stride >= 1; stride /= 2) {
+        __syncthreads();
+        if (t < stride) {
+            inputShared[t] += inputShared[t + stride];
+        }
+    }
+
+    // 블럭당 딱 한 번만 부르는 게 요점이다. 쓰레드마다 부르면 1) 이 된다.
+    if (t == 0)
+        atomicAdd(output, inputShared[0]); -> 이걸 마지막에 사용해서 vram에 있는 output에 각각의 블럭안에 있는 데이터를 더해준다
+}
+~~~
 
 
 
