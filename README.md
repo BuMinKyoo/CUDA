@@ -907,6 +907,19 @@ __global__ void segmentedSumReductionKernel(float *input, float *output) {
 }
 ~~~
 
+<br/>
+
+  - GPU커널안에서 공유메모리 할당
+
+~~~c
+sharedMemorySumReductionKernel<<<1, threadsPerBlock, threadsPerBlock * sizeof(float)>>>
+-> 여기서 3번째 인자가 공유메모리를 그만큼 할당한다는것, 이렇게 하면 동적으로 메모리 할당이 가능하다
+-> 동적 메모리 할당은 "extern __shared__ float inputShared[]; " 이와같이 컴파일 당시 크기를 정하지 않는것
+-> 해당 용량은 동적 + 정적을 합쳐서 계산한다
+-> 정적은 " __shared__ float tile[32][32];" 이렇게 하는것이고, cuda함수에서 3번째 인자가 필요 없다
+-> 동적 배열은 2개를 만들수 없다!!
+~~~
+
 
 
 ###### [Reduction](#reduction)
