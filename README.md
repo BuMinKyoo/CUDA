@@ -10,6 +10,7 @@
   - [메모리접근속도,공유메모리](#메모리접근속도공유메모리)_S2_Memory -> 04_Transpose
   - [Reduction](#reduction)_S3_Reduction -> 05_Reduction
   - [Sanitizer](#sanitizer)_S4_Debugging -> 06_Sanitizer
+  - [pageable,pinned](#pageablepinned)_S5_Streams -> 07_Streams
 
 
 <br/>
@@ -967,7 +968,35 @@ __global__ void OutOfBoundsWrite(int* out, int n) {
 ###### [Top](#top)
 
 
+<br/>
+<br/>
+
+***
+
+# pageable,pinned
+  - S5_Streams -> 07_Streams
+  - pageable : c나 c++에서 malloc/new를 하듯이 잡으면 그게 pageable가 된다
+    - OS 가 언제든 디스크로 밀어낼 수 있는 것이기 때문에 GPU가 직접 읽을수가 없다, 만약 이 메모리를 GPU에게 넘기게 되면, 드라이버가 내부 pinned 버퍼로 한 번 복사한 뒤, 거기서 GPU 로 보낸다. 복사가 두 번이다
+    - pageable로 cudaMemcpyAsync를 부르면, 드라이버가 조용히 동기 복사로 처리하기 때문에 비동기의 속도를 낼수가 없다.
+  - pinned : cudaMallocHost를 사용해서 메모리를 잡는다
+    - CUDA가 관리하는 호스트 메모리 라는 뜻. CUDA 함수로 잡지만 결과물은 평범한 CPU 메모리이다.
+    - OS가 디스크로 밀어내지 못하게 고정되어 있다.
+    - CPU에서도 쓸수 있고 GPU에서는 비동기로 사용할수 있게 된다
+
+<br/>
+
+```text
+pinned:
+  cudaMemcpyAsync 호출 → DMA 엔진에 작업 등록 → 즉시 리턴 → CPU는 다음 줄로
+                          (GPU가 알아서 가져감)
+
+pageable:
+  cudaMemcpyAsync 호출 → CPU가 내부 pinned 버퍼로 복사 ... → 그 다음 DMA → 리턴
+                          └─ 여기서 CPU가 붙잡힌다 ─┘
+```
 
 
+###### [pageable,pinned](#pageablepinned)
+###### [Top](#top)
 
 
