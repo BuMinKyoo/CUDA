@@ -9,11 +9,8 @@
   - [비동기,에러](#비동기에러)_S1_ExecModel -> 03_AsyncAndErrors
   - [메모리접근속도,공유메모리](#메모리접근속도공유메모리)_S2_Memory -> 04_Transpose
   - [Reduction](#reduction)_S3_Reduction -> 05_Reduction
+  - [Sanitizer](#sanitizer)_S4_Debugging -> 06_Sanitizer
 
-
-
-
-2D 커널
 
 <br/>
 <br/>
@@ -924,6 +921,53 @@ sharedMemorySumReductionKernel<<<1, threadsPerBlock, threadsPerBlock * sizeof(fl
 
 ###### [Reduction](#reduction)
 ###### [Top](#top)
+
+
+<br/>
+<br/>
+
+***
+
+# Sanitizer
+  - S4_Debugging -> 06_Sanitizer
+  - 동적 분석 도구
+
+<br/>
+
+  - 여기를 보면 n에 4000바이트를 할당한 후에 4024개의 스레드가 각가 지나가게 되어, 24개의 할당받지 않은 곳을 접근하는데 에러가 나지 않는다
+  - 하드웨어에서 할당을할때 조금더 할당을 하게됨, 이럴때는 에러가 안나고, 접근하는 해당 메모리를 덮어써버리기때문에 찾기 어려움
+  - 이때 Sanitizer를 사용한다
+  - compute-sanitizer --tool memcheck .\06_Sanitizer.exe 1
+
+```text
+compute-sanitizer --tool racecheck 06_Sanitizer.exe 2
+                  └── 도구 옵션 ──┘              └┘ 내 프로그램 인자(모드 번호)
+```
+
+<br/>
+
+~~~c
+const int n = 1000;
+const int block = 256;
+const int grid = DivUp(n, block);
+CUDA_CHECK(cudaMalloc((void**)&d, n * sizeof(int)));
+OutOfBoundsWrite<<<grid, block>>>(d, n);
+
+__global__ void OutOfBoundsWrite(int* out, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    out[i] = i;               // 가드 없음. i 가 n 이상이어도 그냥 쓴다 -> 하드웨어에서 할당을 조금더 해서 에러가 안남
+}
+~~~
+
+<br/>
+
+  - Sanitizer예시는 위의 하나만 적어두고 넘어간다. 나머지는 나중에 사용할때 찾아 쓰도록 한다
+
+###### [Sanitizer](#sanitizer)
+###### [Top](#top)
+
+
+
 
 
 
