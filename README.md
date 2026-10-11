@@ -10,7 +10,7 @@
   - [메모리접근속도,공유메모리](#메모리접근속도공유메모리)_S2_Memory -> 04_Transpose
   - [Reduction](#reduction)_S3_Reduction -> 05_Reduction
   - [Sanitizer](#sanitizer)_S4_Debugging -> 06_Sanitizer
-  - [pageable,pinned](#pageablepinned)_S5_Streams -> 07_Streams
+  - [pageable,pinned,프로파일링](#pageablepinned프로파일링)_S5_Streams -> 07_Streams
 
 
 <br/>
@@ -973,7 +973,7 @@ __global__ void OutOfBoundsWrite(int* out, int n) {
 
 ***
 
-# pageable,pinned
+# pageable,pinned,프로파일링
   - S5_Streams -> 07_Streams
   - pageable : c나 c++에서 malloc/new를 하듯이 잡으면 그게 pageable가 된다
     - OS 가 언제든 디스크로 밀어낼 수 있는 것이기 때문에 GPU가 직접 읽을수가 없다, 만약 이 메모리를 GPU에게 넘기게 되면, 드라이버가 내부 pinned 버퍼로 한 번 복사한 뒤, 거기서 GPU 로 보낸다. 복사가 두 번이다
@@ -1030,7 +1030,31 @@ auto runAsync = [&](int streams) {
 };
 ```
 
-###### [pageable,pinned](#pageablepinned)
+<br/>
+
+  - 프로파일링
+
+<br/>
+
+<img width="673" height="403" alt="image" src="https://github.com/user-attachments/assets/f654d6b2-a648-448e-bb78-d1191fd541de" />
+
+<br/>
+
+  - stream으로 커널을 작업할때 복사를 겹치지 않은 모습
+
+<br/>
+
+<img width="1456" height="99" alt="image" src="https://github.com/user-attachments/assets/13569c41-66a4-4a58-8c4c-4517e5fb5a2a" />
+
+<br/>
+
+  - stream으로 커널을 작업할때 복사를 겹친 모습
+
+<img width="1253" height="121" alt="image" src="https://github.com/user-attachments/assets/e2705b5d-08b9-4557-bf2a-8c633015b91e" />
+
+<br/>
+
+###### [pageable,pinned,프로파일링](#pageablepinned프로파일링)
 ###### [Top](#top)
 
 
