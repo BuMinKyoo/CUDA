@@ -1004,6 +1004,8 @@ DMA 엔진과 SM 이 별개 부품이니까 동시에 돌 수 있다!!!!!!!!!
   - 여기서 이제 stream이라는 개념이 나오게 된다
   - 위의 말처럼 pinned으로 메모리를 잡는것은 비동기로 복사와 같은 작업을 진행하기 위해서이고, 거기에 Streamd은 작업큐를 만드는 과정이다
   - 아래의 코드처럼 cudaStream_t 를통해서 stream이라는것을 만들어두고, 각스트림을 작업큐라고 생각하고 각각의 작업을 stream에 나눠 넣는것이다
+  - 즉, "asyncEngineCount = 1"을 하드웨어 정보에서 확인할수 있는데 이는 DMA가 1개라는뜻이고, 복사들은 여기서 줄을 서게됨.
+  - Stream이 없으면, 복사 중엔 SM 놀고, 커널 중엔 DMA 노는 사태가 발생할수 있음
 
 ```text
 std::vector<cudaStream_t> st(nStreams);
