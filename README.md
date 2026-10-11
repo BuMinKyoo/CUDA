@@ -993,8 +993,40 @@ pinned:
 pageable:
   cudaMemcpyAsync 호출 → CPU가 내부 pinned 버퍼로 복사 ... → 그 다음 DMA → 리턴
                           └─ 여기서 CPU가 붙잡힌다 ─┘
+
+DMA엔진 : GPU 안에 있는 별도 하드웨어 유닛. 계산하는 SM 들과 나란히 놓인 다른 부품
+pageable은 복사르르 CPU가 했기 때문에 멈추지만, pinned은 고정된 주소로써 DMA가 직접 읽을수 있기 때문에 CPU를 한번도 거치지 않고 진행한다
+DMA 엔진과 SM 이 별개 부품이니까 동시에 돌 수 있다!!!!!!!!!
 ```
 
+<br/>
+
+  - 여기서 이제 stream이라는 개념이 나오게 된다
+  - 위의 말처럼 pinned으로 메모리를 잡는것은 비동기로 복사와 같은 작업을 진행하기 위해서이고, 거기에 Streamd은 작업큐를 만드는 과정이다
+  - 아래의 코드처럼 cudaStream_t 를통해서 stream이라는것을 만들어두고, 각스트림을 작업큐라고 생각하고 각각의 작업을 stream에 나눠 넣는것이다
+
+```text
+std::vector<cudaStream_t> st(nStreams);
+for (int s = 0; s < nStreams; ++s) {
+    CUDA_CHECK(cudaStreamCreate(&st[s]));
+}
+
+auto runAsync = [&](int streams) {
+    for (int c = 0; c < nChunks; ++c) {
+        const int s = c % streams;
+        const size_t off = static_cast<size_t>(c) * chunkN;
+
+        CUDA_CHECK(cudaMemcpyAsync(dFull + off, hPinned + off, chunkBytes,
+                                   cudaMemcpyHostToDevice, st[s]));
+        Work<<<DivUp(chunkN, block), block, 0, st[s]>>>(dFull + off, chunkN, iters);
+        CUDA_CHECK_LAUNCH();
+        CUDA_CHECK(cudaMemcpyAsync(hOutPinned + off, dFull + off, chunkBytes,
+                                   cudaMemcpyDeviceToHost, st[s]));
+    }
+
+    CUDA_CHECK(cudaDeviceSynchronize());   // 전부 끝날 때까지 여기서 한 번만 기다린다
+};
+```
 
 ###### [pageable,pinned](#pageablepinned)
 ###### [Top](#top)
