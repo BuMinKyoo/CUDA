@@ -1054,6 +1054,8 @@ auto runAsync = [&](int streams) {
 
 <br/>
 
+  - 여기서 헷갈리지 말아야 할것은, Stream이 1개인 경우에는 무조건 직렬로 작동한다는것, DMA계산이든 SM계산이든 직렬로 이루어 지고, 이종병렬 처리나 DMA, SM동시 처리를 하기 위해서는 Stream을 2개 이상만들어서 각각을 따로 진행 시키면서 겹쳐야 한다
+
 ###### [pageable,pinned,프로파일링](#pageablepinned프로파일링)
 ###### [Top](#top)
 
